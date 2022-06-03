@@ -1,0 +1,8 @@
+name: 'Event Ticketing'
+type: module
+description: 'Event Ticketing with Drupal Commerce'
+core_version_requirement: ^9
+package: 'Event'
+dependencies:
+  - commerce:commerce_price
+  - event_registration:event_registration
