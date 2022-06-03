@@ -1,0 +1,43 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - event_ticket
+label: 'Event Registration'
+id: event_ticket
+plugin: event_ticket
+configuration:
+  display_checkout_progress: true
+  display_checkout_progress_breadcrumb_links: 0
+  panes:
+    completion_register:
+      step: complete
+      weight: '10'
+    review:
+      step: review
+      weight: '10'
+    completion_message:
+      message:
+        value: "Your order number is [commerce_order:order_number].\r\nYou can view your order on your account page when logged in."
+        format: plain_text
+      step: complete
+      weight: '10'
+    order_summary:
+      view: ''
+      step: _sidebar
+      weight: '10'
+    login:
+      allow_guest_checkout: true
+      allow_registration: false
+      step: login
+      weight: '10'
+    contact_information:
+      double_entry: false
+      step: order_information
+      weight: '10'
+    billing_information:
+      step: order_information
+      weight: '10'
+    event_ticket_information:
+      step: event_ticket_information
+      weight: '10'
