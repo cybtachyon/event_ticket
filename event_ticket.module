@@ -1,0 +1,97 @@
+<?php
+
+/**
+ * @file
+ * Contains event_ticket.module.
+ */
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function event_ticket_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the event_ticket module.
+    case 'help.page.event_ticket':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Event Ticketing with Drupal Commerce') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function event_ticket_theme() {
+  $theme = [];
+  $theme['event_ticket'] = [
+    'render element' => 'elements',
+    'file' => 'event_ticket.page.inc',
+    'template' => 'event_ticket',
+  ];
+  $theme['event_ticket_content_add_list'] = [
+    'render element' => 'content',
+    'variables' => ['content' => NULL],
+    'file' => 'event_ticket.page.inc',
+  ];
+  return $theme;
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function event_ticket_theme_suggestions_event_ticket(array $variables) {
+  $suggestions = [];
+  $entity = $variables['elements']['#event_ticket'];
+  $sanitized_view_mode = strtr($variables['elements']['#view_mode'], '.', '_');
+
+  $suggestions[] = 'event_ticket__' . $sanitized_view_mode;
+  $suggestions[] = 'event_ticket__' . $entity->bundle();
+  $suggestions[] = 'event_ticket__' . $entity->bundle() . '__' . $sanitized_view_mode;
+  $suggestions[] = 'event_ticket__' . $entity->id();
+  $suggestions[] = 'event_ticket__' . $entity->id() . '__' . $sanitized_view_mode;
+  return $suggestions;
+}
+
+function event_ticket_base_field_info(EntityTypeInterface $entity_type) {
+  if ($entity_type->id() == 'event_registration') {
+    $fields = [];
+    $fields['registration_type'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Type'))
+      ->setDescription(t('The Order item the registration is linked to.'))
+      ->setRevisionable(TRUE)
+      ->setSetting('target_type', 'event_ticket')
+      ->setSetting('handler', 'default')
+      ->setDisplayOptions('view', [
+        'label' => 'hidden',
+        'weight' => 0,
+      ])
+      ->setDisplayOptions('form', [
+        'type' => 'entity_reference_autocomplete',
+        'weight' => 5,
+        'settings' => [
+          'match_operator' => 'CONTAINS',
+          'size' => '60',
+          'placeholder' => '',
+        ],
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
+    $fields['order_item'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Order Item'))
+      ->setDescription(t('The Order item the registration is linked to.'))
+      ->setRevisionable(TRUE)
+      ->setSetting('target_type', 'commerce_order_item')
+      ->setSetting('handler', 'default')
+      ->setDisplayConfigurable('form', FALSE)
+      ->setDisplayConfigurable('view', TRUE);
+
+    return $fields;
+  }
+}

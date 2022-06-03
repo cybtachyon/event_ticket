@@ -1,0 +1,22 @@
+# Ticket routing definition
+
+entity.event_ticket.canonical:
+  route_name: entity.event_ticket.canonical
+  base_route: entity.event_ticket.canonical
+  title: 'View'
+
+entity.event_ticket.edit_form:
+  route_name: entity.event_ticket.edit_form
+  base_route: entity.event_ticket.canonical
+  title: 'Edit'
+
+entity.event_ticket.version_history:
+  route_name: entity.event_ticket.version_history
+  base_route: entity.event_ticket.canonical
+  title: 'Revisions'
+
+entity.event_ticket.delete_form:
+  route_name:  entity.event_ticket.delete_form
+  base_route:  entity.event_ticket.canonical
+  title: Delete
+  weight: 10
