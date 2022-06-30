@@ -58,29 +58,22 @@ function event_ticket_theme_suggestions_event_ticket(array $variables) {
   return $suggestions;
 }
 
+/**
+ * Implements hook_base_field_info().
+ */
 function event_ticket_base_field_info(EntityTypeInterface $entity_type) {
   if ($entity_type->id() == 'event_registration') {
     $fields = [];
-    $fields['registration_type'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Type'))
-      ->setDescription(t('The Order item the registration is linked to.'))
+    $fields['ticket'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Ticket'))
+      ->setDescription(t('The ticket the registration was bought with.'))
       ->setRevisionable(TRUE)
       ->setSetting('target_type', 'event_ticket')
       ->setSetting('handler', 'default')
       ->setDisplayOptions('view', [
-        'label' => 'hidden',
-        'weight' => 0,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'entity_reference_autocomplete',
-        'weight' => 5,
-        'settings' => [
-          'match_operator' => 'CONTAINS',
-          'size' => '60',
-          'placeholder' => '',
-        ],
-      ])
-      ->setDisplayConfigurable('form', TRUE)
+        'label' => 'above',
+      ]))
+      ->setDisplayConfigurable('form', FALSE)
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['order_item'] = BaseFieldDefinition::create('entity_reference')

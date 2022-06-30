@@ -19,7 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class Registration extends CheckoutPaneBase {
-  
+
   protected $displayRepository;
 
   /**
@@ -36,7 +36,7 @@ class Registration extends CheckoutPaneBase {
    */
   public function defaultConfiguration() {
     return [
-      'form_mode' => 'add',
+      'form_mode' => 'register',
     ] + parent::defaultConfiguration();
   }
 
@@ -54,9 +54,9 @@ class Registration extends CheckoutPaneBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    
+
     $form_modes = $this->displayRepository->getFormModeOptions('event_registration');
-    
+
     $form['form_mode'] = [
       '#type' => 'options',
       '#title' => $this->t('Form Mode'),
@@ -103,7 +103,10 @@ class Registration extends CheckoutPaneBase {
 
     $summary = [];
     foreach ($order->getItems() as $item) {
-      $registrations = $storage->getRegistrationsForOrderItem($item);
+      $registrations_query = $storage->getQuery();
+      $registrations_query->condition('order_item', $item->id());
+      $registration_ids = $registration_query->execute();
+      $registrations = $storage->loadMultiple($registration_ids);
       foreach ($registrations as $registration) {
         $summary[$registration->id()] = [
           '#plain_text' => $registration->getLabel(),
@@ -117,23 +120,35 @@ class Registration extends CheckoutPaneBase {
    * {@inheritdoc}
    */
   public function buildPaneForm(array $pane_form, FormStateInterface $form_state, array &$complete_form) {
-    
-    $pane_form['email'] = [
-      '#type' => 'email',
-      '#title' => $this->t('Email'),
-      '#default_value' => $this->order->getEmail(),
-      '#required' => TRUE,
-    ];
-    if ($this->configuration['double_entry']) {
-      $pane_form['email_confirm'] = [
-        '#type' => 'email',
-        '#title' => $this->t('Confirm email'),
-        '#default_value' => $this->order->getEmail(),
-        '#required' => TRUE,
-      ];
+
+
+    $summary = [];
+    foreach ($order->getItems() as $item) {
+      $registrations = $this->getOrderItemRegistrations($item);
+      foreach ($registrations as $registration) {
+        $summary[$registration->id()] = [
+          '#plain_text' => $registration->getLabel(),
+        ];
+      }
+
+      $new = $item->getQuantity() - count($registrations);
+      if ($new < 0) {
+        $form_state->setError($pane_form, $this->t('There are more registrations then tickets being purchased.');
+      }
+      else if ($new > 0) {
+        //@TODO: Add entry form.
+      }
     }
 
     return $pane_form;
+  }
+
+  public function getOrderItemRegistrations(OrderItemInterface $order_item) {
+    $storage = $this->entityTypeManager->getStorage('event_registration');
+    $registrations_query = $storage->getQuery();
+    $registrations_query->condition('order_item', $item->id());
+    $registration_ids = $registration_query->execute();
+    return $storage->loadMultiple($registration_ids);
   }
 
   /**
