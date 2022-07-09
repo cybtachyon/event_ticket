@@ -85,14 +85,17 @@ function event_ticket_entity_base_field_info(EntityTypeInterface $entity_type) {
       ->setDisplayConfigurable('form', FALSE)
       ->setDisplayConfigurable('view', TRUE);
 
-    $fields['order_item'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Order Item'))
-      ->setDescription(t('The Order item the registration is linked to.'))
-      ->setRevisionable(TRUE)
-      ->setSetting('target_type', 'commerce_order_item')
-      ->setSetting('handler', 'default')
-      ->setDisplayConfigurable('form', FALSE)
-      ->setDisplayConfigurable('view', TRUE);
+    $moduleHandler = \Drupal::service('module_handler');
+    if ($moduleHandler->moduleExists('commerce_order')) {
+      $fields['order_item'] = BaseFieldDefinition::create('entity_reference')
+        ->setLabel(t('Order Item'))
+        ->setDescription(t('The Order item the registration is linked to.'))
+        ->setRevisionable(TRUE)
+        ->setSetting('target_type', 'commerce_order_item')
+        ->setSetting('handler', 'default')
+        ->setDisplayConfigurable('form', FALSE)
+        ->setDisplayConfigurable('view', TRUE);
+    }
 
     return $fields;
   }
