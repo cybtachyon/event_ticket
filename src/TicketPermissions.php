@@ -82,7 +82,13 @@ class TicketPermissions {
         'description' => $this->t('To delete a revision, you also need permission to delete the entity item.'),
       ],
       "order $type_id event_ticket for any event" => [
-        'title' => $this->t('Order %type_name Tickets for any events', $type_params),
+        'title' => $this->t('Order %type_name Tickets for any events'),
+      ],
+      "access event_ticket overview for any event" => [
+        'title' => $this->t('Access Ticket Overview page for any Event'),
+      ],
+      "access event_ticket list for any event" => [
+        'title' => $this->t('Access Ticket List for any Event'),
       ],
     ];
   }
