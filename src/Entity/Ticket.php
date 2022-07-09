@@ -313,7 +313,7 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
       ])
       ->setDefaultValue('')
       ->setDisplayOptions('view', [
-        'label' => 'above',
+        'label' => 'hidden',
         'type' => 'string',
         'weight' => -4,
       ])
