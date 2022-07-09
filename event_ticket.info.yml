@@ -5,4 +5,5 @@ core_version_requirement: ^9
 package: 'Event'
 dependencies:
   - commerce:commerce_price
+  - commerce:commerce_store
   - event_registration:event_registration
