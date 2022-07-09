@@ -66,7 +66,9 @@ class TicketRevisionRevertForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getCancelUrl() {
-    return new Url('entity.event_ticket.version_history', ['event_ticket' => $this->revision->id()]);
+    return new Url('entity.event_ticket.version_history', [
+      'event_ticket' => $this->revision->id(),
+    ]);
   }
 
   /**
@@ -107,11 +109,19 @@ class TicketRevisionRevertForm extends ConfirmFormBase {
     ]);
     $this->revision->save();
 
-    $this->logger('content')->notice('Ticket: reverted %title revision %revision.', ['%title' => $this->revision->label(), '%revision' => $this->revision->getRevisionId()]);
-    $this->messenger()->addMessage(t('Ticket %title has been reverted to the revision from %revision-date.', ['%title' => $this->revision->label(), '%revision-date' => $this->dateFormatter->format($original_revision_timestamp)]));
+    $this->logger('content')->notice('Ticket: reverted %title revision %revision.', [
+      '%title' => $this->revision->label(),
+      '%revision' => $this->revision->getRevisionId(),
+    ]);
+    $this->messenger()->addMessage(t('Ticket %title has been reverted to the revision from %revision-date.', [
+      '%title' => $this->revision->label(),
+      '%revision-date' => $this->dateFormatter->format($original_revision_timestamp),
+    ]));
     $form_state->setRedirect(
       'entity.event_ticket.version_history',
-      ['event_ticket' => $this->revision->id()]
+      [
+        'event_ticket' => $this->revision->id(),
+      ]
     );
   }
 

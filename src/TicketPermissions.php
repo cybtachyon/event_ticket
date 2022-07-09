@@ -5,7 +5,6 @@ namespace Drupal\event_ticket;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\event\Entity\EventType;
 use Drupal\event\Entity\EventTypeInterface;
-use Drupal\event_ticket\Entity\Ticket;
 use Drupal\event_ticket\Entity\TicketType;
 use Drupal\event_ticket\Entity\TicketTypeInterface;
 
@@ -13,9 +12,8 @@ use Drupal\event_ticket\Entity\TicketTypeInterface;
  * Provides dynamic permissions for Ticket of different types.
  *
  * @ingroup event_ticket
- *
  */
-class TicketPermissions{
+class TicketPermissions {
 
   use StringTranslationTrait;
 
@@ -33,7 +31,7 @@ class TicketPermissions{
     foreach ($ticket_types as $type) {
       $perms += $this->buildPermissions($type);
     }
-    
+
     $event_types = EventType::loadMultiple();
     foreach ($event_types as $event_type) {
       $perms += $this->buildEventPermissions($event_type, $ticket_types);
@@ -88,7 +86,7 @@ class TicketPermissions{
       ],
     ];
   }
-  
+
   /**
    * Returns a list of ticket permissions for a given event type.
    *
@@ -101,7 +99,7 @@ class TicketPermissions{
    *   An associative array of permission names and descriptions.
    */
   protected function buildEventPermissions(EventTypeInterface $event_type, array $ticket_types) {
-    
+
     $event_type_id = $event_type->id();
     $event_type_params = [
       '%event_type_name' => $event_type->label(),
@@ -118,7 +116,7 @@ class TicketPermissions{
         'title' => $this->t('Access Ticket List for %event_type_name Event', $event_type_params),
       ],
     ];
-    
+
     foreach ($ticket_types as $ticket_type) {
       $ticket_type_id = $ticket_type->id();
       $ticket_type_param = $event_type_params + [
@@ -130,7 +128,7 @@ class TicketPermissions{
         ],
       ];
     }
-    
+
     return $perms;
   }
 

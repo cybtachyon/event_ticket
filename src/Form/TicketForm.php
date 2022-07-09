@@ -57,7 +57,7 @@ class TicketForm extends ContentEntityForm {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    /* @var \Drupal\event_ticket\Entity\Ticket $entity */
+    /** @var \Drupal\event_ticket\Entity\Ticket $entity */
     $form = parent::buildForm($form, $form_state);
 
     if (!$this->entity->isNew()) {

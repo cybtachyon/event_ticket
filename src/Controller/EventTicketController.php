@@ -2,13 +2,10 @@
 
 namespace Drupal\event_ticket\Controller;
 
-use Drupal\Component\Utility\Xss;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Form\FormState;
-use Drupal\Core\Url;
 use Drupal\event\Entity\EventInterface;
-use Drupal\event_ticket\Entity\TicketInterface;
 use Drupal\event_ticket\Form\TicketAddToCartForm;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -16,14 +13,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Provides controller for an event's registration overview page.
  */
 class EventTicketController extends ControllerBase implements ContainerInjectionInterface {
- 
+
   /**
    * The form builder service.
    *
    * @var \Drupal\Core\Form\FormBuilderInterface
    */
   protected $formBuilder;
-  
+
   /**
    * {@inheritdoc}
    */
@@ -32,7 +29,7 @@ class EventTicketController extends ControllerBase implements ContainerInjection
     $instance->formBuilder = $container->get('form_builder');
     return $instance;
   }
-  
+
   /**
    * The controller title callback.
    *
@@ -62,7 +59,7 @@ class EventTicketController extends ControllerBase implements ContainerInjection
     $form_state->addBuildInfo('event', $event);
     return \Drupal::formBuilder()->buildForm(TicketAddToCartForm::class, $form_state);
   }
-  
+
   /**
    * The controller title callback.
    *

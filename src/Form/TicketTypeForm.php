@@ -8,7 +8,7 @@ use Drupal\entity\Form\EntityDuplicateFormTrait;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Class TicketTypeForm.
+ * Class TicketType Entity Form.
  */
 class TicketTypeForm extends EntityForm {
 
@@ -38,7 +38,7 @@ class TicketTypeForm extends EntityForm {
       ],
       '#disabled' => !$event_ticket_type->isNew(),
     ];
-    
+
     $form['description'] = [
       '#type' => 'textarea',
       '#default_value' => $this->entity->getDescription(),
@@ -62,7 +62,7 @@ class TicketTypeForm extends EntityForm {
         '#required' => TRUE,
       ];
     }
-    
+
     // Prepare a list of order item types used to purchase product variations.
     $registration_type_storage = $this->entityTypeManager->getStorage('event_registration_type');
     $registration_types = $registration_type_storage->loadMultiple();

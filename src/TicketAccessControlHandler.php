@@ -72,8 +72,11 @@ class TicketAccessControlHandler extends EntityAccessControlHandler {
    * Test for given 'own' permission.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
-   * @param $operation
+   *   The entity to check access for.
+   * @param string $operation
+   *   The access operation.
    * @param \Drupal\Core\Session\AccountInterface $account
+   *   The account to test access against.
    *
    * @return string|null
    *   The permission string indicating it's allowed.

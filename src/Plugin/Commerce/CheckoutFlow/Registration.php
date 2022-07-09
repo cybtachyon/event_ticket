@@ -20,10 +20,10 @@ class Registration extends MultistepDefault {
   public function getSteps() {
     $steps = parent::getSteps();
     $steps['order_information']['next_label'] = $this->t('Continue');
-    
+
     $login = $steps['login'];
     unset($steps['login']);
-    
+
     return [
       'login' => $login,
       'event_ticket_information' => [

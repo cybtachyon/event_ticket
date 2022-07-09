@@ -15,13 +15,12 @@ use Drupal\user\EntityOwnerInterface;
  * @ingroup event_ticket
  */
 interface TicketInterface extends
-  PurchasableEntityInterface,
-  CommerceContentEntityInterface,
-  RevisionLogInterface,
-  EntityChangedInterface,
-  EntityPublishedInterface,
-  EntityOwnerInterface
-{
+    PurchasableEntityInterface,
+    CommerceContentEntityInterface,
+    RevisionLogInterface,
+    EntityChangedInterface,
+    EntityPublishedInterface,
+    EntityOwnerInterface {
 
   /**
    * Add get/set methods for your configuration properties here.
@@ -45,6 +44,22 @@ interface TicketInterface extends
    *   The called Ticket entity.
    */
   public function setName($name);
+
+  /**
+   * Get the parent event.
+   *
+   * @return \Drupal\event\Entity\EventInterface
+   *   The event instance.
+   */
+  public function getEvent();
+
+  /**
+   * Get the ticket type instance.
+   *
+   * @return \Drupal\event_ticket\Entity\TicketType
+   *   The ticke type instance.
+   */
+  public function getTicketType();
 
   /**
    * Gets the Ticket creation timestamp.

@@ -107,19 +107,12 @@ class EventRegistration extends ContentEntity {
   /**
    * {@inheritdoc}
    */
-  protected function validateConfiguration() {
-    parent::validateConfiguration();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function buildInlineForm(array $inline_form, FormStateInterface $form_state) {
     $inline_form = parent::buildInlineForm($inline_form, $form_state);
 
     assert($this->entity instanceof RegistrationInterface);
 
-    if (false && $this->shouldRender($inline_form, $form_state)) {
+    if (FALSE && $this->shouldRender($inline_form, $form_state)) {
       $view_builder = $this->entityTypeManager->getViewBuilder('event_registration');
       $inline_form['rendered'] = $view_builder->view($this->entity);
       $inline_form['edit_button'] = [

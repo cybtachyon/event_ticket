@@ -37,8 +37,8 @@ class TicketController extends EntityController implements ContainerInjectionInt
   /**
    * {@inheritdoc}
    */
-  public function addPage($entity_type_id, EventInterface $event = null) {
-    
+  public function addPage($entity_type_id, EventInterface $event = NULL) {
+
     $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
     $bundles = $this->entityTypeBundleInfo->getBundleInfo($entity_type_id);
     $bundle_key = $entity_type->getKey('bundle');
@@ -154,7 +154,12 @@ class TicketController extends EntityController implements ContainerInjectionInt
     $langname = $event_ticket->language()->getName();
     $languages = $event_ticket->getTranslationLanguages();
     $has_translations = (count($languages) > 1);
-    $build['#title'] = $has_translations ? $this->t('@langname revisions for %title', ['@langname' => $langname, '%title' => $event_ticket->label()]) : $this->t('Revisions for %title', ['%title' => $event_ticket->label()]);
+    $build['#title'] = $has_translations ? $this->t('@langname revisions for %title', [
+      '@langname' => $langname,
+      '%title' => $event_ticket->label(),
+    ]) : $this->t('Revisions for %title', [
+      '%title' => $event_ticket->label(),
+    ]);
 
     $header = [$this->t('Revision'), $this->t('Operations')];
     $revert_permission = (($account->hasPermission("revert all ticket revisions") || $account->hasPermission('administer ticket entities')));

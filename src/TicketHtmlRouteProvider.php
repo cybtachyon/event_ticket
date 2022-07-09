@@ -38,7 +38,7 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
   protected function getAddFormRoute(EntityTypeInterface $entity_type) {
     if ($route = parent::getAddFormRoute($entity_type)) {
       $parameters = $route->getOption('parameters');
-      $parameters['event']= [
+      $parameters['event'] = [
         'type' => 'entity:event',
       ];
       $route

@@ -4,7 +4,6 @@ namespace Drupal\event_ticket;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityListBuilder;
-use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Link;
@@ -66,7 +65,7 @@ class TicketListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
-    /* @var \Drupal\event_ticket\Entity\Ticket $entity */
+    /** @var \Drupal\event_ticket\Entity\Ticket $entity */
     $row['id'] = $entity->id();
     $row['name'] = Link::fromTextAndUrl(
       $entity->label(),
@@ -75,17 +74,17 @@ class TicketListBuilder extends EntityListBuilder {
     $row['type'] = $type ? $type->label() : $entity->bundle();
     return $row + parent::buildRow($entity);
   }
- 
+
   /**
    * {@inheritdoc}
-   */ 
+   */
   protected function getEntityIds() {
     $query = $this
       ->getStorage()
       ->getQuery()
       ->sort($this->entityType
-      ->getKey('id'));
-      
+        ->getKey('id'));
+
     if ($this->event) {
       $query->condition('event', $this->event->id());
     }

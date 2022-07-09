@@ -25,14 +25,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class AddToCartFormatter extends FormatterBase {
- 
+
   /**
    * The form builder service.
    *
    * @var \Drupal\Core\Form\FormBuilderInterface
    */
   protected $formBuilder;
-  
+
   /**
    * {@inheritdoc}
    */
@@ -98,7 +98,7 @@ class AddToCartFormatter extends FormatterBase {
     if ($event->isNew()) {
       return [];
     }
-    
+
     $form_state = new FormState();
     $form_state->addBuildInfo('event', $event);
     return \Drupal::formBuilder()->buildForm(TicketAddToCartForm::class, $form_state);

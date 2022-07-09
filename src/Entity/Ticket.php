@@ -98,7 +98,7 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
    */
   protected function urlRouteParameters($rel) {
     $uri_route_parameters = parent::urlRouteParameters($rel);
-    
+
     $event = $this->getEvent();
     $uri_route_parameters['event'] = $event ? $event->id() : NULL;
 
@@ -234,7 +234,10 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
   public function getEvent() {
     return $this->getTranslatedReferencedEntity('event');
   }
-  
+
+  /**
+   * {@inheritdoc}
+   */
   public function getTicketType() {
     $type_storage = $this->entityTypeManager()->getStorage('event_ticket_type');
     return $type_storage->load($this->bundle());

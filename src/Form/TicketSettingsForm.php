@@ -6,7 +6,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Class TicketSettingsForm.
+ * Provides settings for for Event Ticket module.
  *
  * @ingroup event_ticket
  */

@@ -108,7 +108,7 @@ class TicketAddToCartForm extends FormBase {
    *   The current state of the form.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    /**
+    /*
      * At the end of the form have a "Add to cart" button. When clicked, the
      * tickets should be added to the users cart, and they should be sent to
      * checkout.
@@ -124,7 +124,7 @@ class TicketAddToCartForm extends FormBase {
       $order_item = $order_item_storage->createFromPurchasableEntity($ticket, [
         'quantity' => $quantity,
       ]);
-      
+
       if (empty($quantity)) {
         continue;
       }
@@ -142,7 +142,7 @@ class TicketAddToCartForm extends FormBase {
       $order_item = $this->cartManager->addOrderItem($cart, $order_item, TRUE);
 
     }
-    
+
     $this->redirect('commerce_cart.page');
   }
 
