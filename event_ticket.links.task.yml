@@ -20,3 +20,13 @@ entity.event_ticket.delete_form:
   base_route:  entity.event_ticket.canonical
   title: Delete
   weight: 10
+
+event_ticket.event.tickets:
+  route_name:  event_ticket.event.tickets
+  base_route:  entity.event.canonical
+  title: Order Tickets
+
+event_ticket.event.ticket_list:
+  route_name:  event_ticket.event.ticket_list
+  base_route:  entity.event.canonical
+  title: Ticket List

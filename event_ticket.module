@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
@@ -43,6 +44,14 @@ function event_ticket_theme() {
 }
 
 /**
+ * Implements hook_entity_type_alter().
+ */
+function event_ticket_entity_type_alter(array &$entity_types) {
+  $entity_types['event']->setLinkTemplate('event-ticket-overview', '/event/{event}/tickets');
+  $entity_types['event']->setLinkTemplate('event-ticket-list', '/event/{event}/tickets/list');
+}
+
+/**
  * Implements hook_theme_suggestions_HOOK().
  */
 function event_ticket_theme_suggestions_event_ticket(array $variables) {
@@ -59,12 +68,12 @@ function event_ticket_theme_suggestions_event_ticket(array $variables) {
 }
 
 /**
- * Implements hook_base_field_info().
+ * Implements hook_entity_base_field_info().
  */
-function event_ticket_base_field_info(EntityTypeInterface $entity_type) {
+function event_ticket_entity_base_field_info(EntityTypeInterface $entity_type) {
   if ($entity_type->id() == 'event_registration') {
     $fields = [];
-    $fields['ticket'] = BaseFieldDefinition::create('entity_reference')
+    $fields['event_ticket'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Ticket'))
       ->setDescription(t('The ticket the registration was bought with.'))
       ->setRevisionable(TRUE)
@@ -72,7 +81,7 @@ function event_ticket_base_field_info(EntityTypeInterface $entity_type) {
       ->setSetting('handler', 'default')
       ->setDisplayOptions('view', [
         'label' => 'above',
-      ]))
+      ])
       ->setDisplayConfigurable('form', FALSE)
       ->setDisplayConfigurable('view', TRUE);
 
@@ -85,6 +94,22 @@ function event_ticket_base_field_info(EntityTypeInterface $entity_type) {
       ->setDisplayConfigurable('form', FALSE)
       ->setDisplayConfigurable('view', TRUE);
 
+    return $fields;
+  }
+  elseif ($entity_type->id() == 'event') {
+    $fields['event_tickets'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Tickets'))
+      ->setDescription(t('The event tickets.'))
+      ->setRequired(TRUE)
+      ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
+      ->setSetting('target_type', 'event_ticket')
+      ->setSetting('handler', 'default')
+      ->setDisplayOptions('view', [
+        'label' => 'above',
+        'type' => 'event_ticket_add_to_cart',
+        'weight' => 10,
+      ])
+      ->setDisplayConfigurable('view', TRUE);
     return $fields;
   }
 }

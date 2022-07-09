@@ -4,6 +4,8 @@ namespace Drupal\event_ticket\Plugin\Commerce\CheckoutPane;
 
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutPane\CheckoutPaneBase;
 use Drupal\commerce_checkout\Plugin\Commerce\CheckoutFlow\CheckoutFlowInterface;
+use Drupal\commerce_order\Entity\OrderItemInterface;
+use Drupal\Core\Render\Element;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\event_ticket\Entity\TicketInterface;
@@ -23,11 +25,19 @@ class Registration extends CheckoutPaneBase {
   protected $displayRepository;
 
   /**
+   * The inline form manager.
+   *
+   * @var \Drupal\commerce\InlineFormManager
+   */
+  protected $inlineFormManager;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition, CheckoutFlowInterface $checkout_flow = NULL) {
     $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition, $checkout_flow);
     $instance->displayRepository = $container->get('entity_display.repository');
+    $instance->inlineFormManager = $container->get('plugin.manager.commerce_inline_form');
     return $instance;
   }
 
@@ -102,7 +112,7 @@ class Registration extends CheckoutPaneBase {
     $storage = $this->entityTypeManager->getStorage('event_registration');
 
     $summary = [];
-    foreach ($order->getItems() as $item) {
+    foreach ($this->order->getItems() as $item) {
       $registrations_query = $storage->getQuery();
       $registrations_query->condition('order_item', $item->id());
       $registration_ids = $registration_query->execute();
@@ -121,22 +131,81 @@ class Registration extends CheckoutPaneBase {
    */
   public function buildPaneForm(array $pane_form, FormStateInterface $form_state, array &$complete_form) {
 
+    $pane_form['#submit'] = [['Drupal\inline_entity_form\ElementSubmit', 'trigger']];
+    $pane_form['tickets'] = [
+      '#type' => 'container',
+    ];
+    foreach ($this->order->getItems() as $item) {
+      $ticket = $item->getPurchasedEntity();
 
-    $summary = [];
-    foreach ($order->getItems() as $item) {
+      $pane_form['tickets'][$item->id()]['registrations'] = [
+        '#type' => 'item',
+        '#title' => $this->t('%ticket_label for %event_label', [
+          '%ticket_label' => $ticket->label(),
+          '%event_label' => $ticket->getEvent()->label(),
+        ]),
+      ];
+
+      $ticket_type = $ticket->getTicketType();
+      $registration_type = $ticket_type->getRegistrationTypeId();
       $registrations = $this->getOrderItemRegistrations($item);
+      $bundle = $ticket->getTicketType();
       foreach ($registrations as $registration) {
-        $summary[$registration->id()] = [
-          '#plain_text' => $registration->getLabel(),
+        $inline_form =  $this->inlineFormManager->createInstance('content_entity', [
+          'form_mode' => 'register',
+        ], $registration);
+        $index = count($pane_form['tickets'][$item->id()]['registrations']);
+        $pane_form['tickets'][$item->id()]['registrations'][$index] = [
+          '#type' => 'details',
+          '#title' => $registration->label(),
+          'form' => [
+            '#parents' => array_merge($pane_form['#parents'], [
+              'tickets',
+              $item->id(),
+              'registrations',
+              $index,
+              'form',
+            ]),
+            '#inline_form' => $inline_form,
+          ],
         ];
+        $pane_form['tickets'][$item->id()]['registrations'][$index]['form'] = $inline_form->buildInlineForm($pane_form['tickets'][$item->id()]['registrations'][$index]['form'], $form_state);
       }
 
       $new = $item->getQuantity() - count($registrations);
       if ($new < 0) {
-        $form_state->setError($pane_form, $this->t('There are more registrations then tickets being purchased.');
+        $form_state->setError($pane_form, $this->t('There are more registrations then tickets being purchased.'));
       }
       else if ($new > 0) {
-        //@TODO: Add entry form.
+        $storage = $this->entityTypeManager->getStorage('event_registration');
+        for ($i = 0; $i < $new; $i++) {
+          $new_registration = $storage->create([
+            'type' => $registration_type,
+            'event' => $ticket->getEvent()->id(),
+            'order_item' => $item->id(),
+            'event_ticket' => $ticket->id(),
+          ]);
+          $inline_form =  $this->inlineFormManager->createInstance('content_entity', [
+            'form_mode' => 'register',
+          ], $registration);
+          $index = count($pane_form['tickets'][$item->id()]['registrations']);
+          $pane_form['tickets'][$item->id()]['registrations'][$index] = [
+            '#type' => 'details',
+            '#open' => TRUE,
+            '#title' => $this->t('New registration'),
+            'form' => [
+              '#parents' => array_merge($pane_form['#parents'], [
+                'tickets',
+                $item->id(),
+                'registrations',
+                $index,
+                'form',
+              ]),
+              '#inline_form' => $inline_form,
+            ],$inline_form,
+          ];
+          $pane_form['tickets'][$item->id()]['registrations'][$index]['form'] = $inline_form->buildInlineForm($pane_form['tickets'][$item->id()]['registrations'][$index]['form'], $form_state);
+        }
       }
     }
 
@@ -146,8 +215,8 @@ class Registration extends CheckoutPaneBase {
   public function getOrderItemRegistrations(OrderItemInterface $order_item) {
     $storage = $this->entityTypeManager->getStorage('event_registration');
     $registrations_query = $storage->getQuery();
-    $registrations_query->condition('order_item', $item->id());
-    $registration_ids = $registration_query->execute();
+    $registrations_query->condition('order_item', $order_item->id());
+    $registration_ids = $registrations_query->execute();
     return $storage->loadMultiple($registration_ids);
   }
 
@@ -155,10 +224,7 @@ class Registration extends CheckoutPaneBase {
    * {@inheritdoc}
    */
   public function validatePaneForm(array &$pane_form, FormStateInterface $form_state, array &$complete_form) {
-    $values = $form_state->getValue($pane_form['#parents']);
-    if ($this->configuration['double_entry'] && $values['email'] != $values['email_confirm']) {
-      $form_state->setError($pane_form, $this->t('The specified emails do not match.'));
-    }
+    //@TODO ensure there aren't extra registrations.
   }
 
   /**
@@ -166,7 +232,23 @@ class Registration extends CheckoutPaneBase {
    */
   public function submitPaneForm(array &$pane_form, FormStateInterface $form_state, array &$complete_form) {
     $values = $form_state->getValue($pane_form['#parents']);
-    $this->order->setEmail($values['email']);
+
+    foreach ($this->order->getItems() as $item) {
+      $indexes = Element::children($pane_form['tickets'][$item->id()]['registrations']);
+
+      foreach ($indexes as $index) {
+        $ticket = $item->getPurchasedEntity();
+        $event = $ticket->getEvent();
+
+        //$pane_form['tickets'][$item->id()]['registrations'][$index]['form']['#inline_form']->submitInlineForm($pane_form, $form_state);
+        $registration = $pane_form['tickets'][$item->id()]['registrations'][$index]['form']['#inline_form']->getEntity();
+
+        $registration->get('event')->appendItem(['entity' => $event]);
+        $registration->get('event_ticket')->appendItem(['entity' => $ticket]);
+        $registration->get('order_item')->appendItem(['entity' => $item]);
+        $registration->save();
+      };
+    }
   }
 
 }

@@ -23,11 +23,11 @@ interface TicketTypeInterface extends CommerceBundleEntityInterface, EntityDescr
   /**
    * {@inheritdoc}
    */
-  public function getRegistrationType(): string;
+  public function getRegistrationTypeId(): ?string;
 
   /**
    * {@inheritdoc}
    */
-  public function setRegistrationType($registration_type_id);
+  public function setRegistrationTypeId($registration_type_id);
 
 }

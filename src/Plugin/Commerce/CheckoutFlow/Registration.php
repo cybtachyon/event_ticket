@@ -19,9 +19,9 @@ class Registration extends MultistepDefault {
    */
   public function getSteps() {
     $steps = parent::getSteps();
+    $steps['order_information']['next_label'] = $this->t('Continue');
     
     $login = $steps['login'];
-    
     unset($steps['login']);
     
     return [
@@ -29,10 +29,10 @@ class Registration extends MultistepDefault {
       'event_ticket_information' => [
         'label' => $this->t('Registration Information'),
         'previous_label' => $this->t('Go back'),
+        'next_label' => $this->t('Continue'),
         'has_sidebar' => FALSE,
       ],
     ] + $steps;
-    
   }
 
 }

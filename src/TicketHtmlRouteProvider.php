@@ -4,6 +4,7 @@ namespace Drupal\event_ticket;
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Routing\AdminHtmlRouteProvider;
+use Drupal\event_ticket\Controller\TicketController;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -13,6 +14,38 @@ use Symfony\Component\Routing\Route;
  * @see \Drupal\Core\Entity\Routing\DefaultHtmlRouteProvider
  */
 class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getAddPageRoute(EntityTypeInterface $entity_type) {
+    if ($route = parent::getAddPageRoute($entity_type)) {
+      $route
+        ->setDefault('_controller', TicketController::class . '::addPage');
+      $route
+        ->setOption('parameters', [
+          'event' => [
+            'type' => 'entity:event',
+          ],
+        ]);
+      return $route;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getAddFormRoute(EntityTypeInterface $entity_type) {
+    if ($route = parent::getAddFormRoute($entity_type)) {
+      $parameters = $route->getOption('parameters');
+      $parameters['event']= [
+        'type' => 'entity:event',
+      ];
+      $route
+        ->setOption('parameters', $parameters);
+      return $route;
+    }
+  }
 
   /**
    * {@inheritdoc}

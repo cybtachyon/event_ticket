@@ -3,9 +3,11 @@
 namespace Drupal\event_ticket\Controller;
 
 use Drupal\Component\Utility\Xss;
-use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Entity\Controller\EntityController;
 use Drupal\Core\Url;
+use Drupal\Core\Link;
+use Drupal\event\Entity\EventInterface;
 use Drupal\event_ticket\Entity\TicketInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -14,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  *  Returns responses for Ticket routes.
  */
-class TicketController extends ControllerBase implements ContainerInjectionInterface {
+class TicketController extends EntityController implements ContainerInjectionInterface {
 
   /**
    * The date formatter.
@@ -24,20 +26,80 @@ class TicketController extends ControllerBase implements ContainerInjectionInter
   protected $dateFormatter;
 
   /**
-   * The renderer.
-   *
-   * @var \Drupal\Core\Render\Renderer
-   */
-  protected $renderer;
-
-  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     $instance = parent::create($container);
     $instance->dateFormatter = $container->get('date.formatter');
-    $instance->renderer = $container->get('renderer');
     return $instance;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function addPage($entity_type_id, EventInterface $event = null) {
+    
+    $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
+    $bundles = $this->entityTypeBundleInfo->getBundleInfo($entity_type_id);
+    $bundle_key = $entity_type->getKey('bundle');
+    $bundle_entity_type_id = $entity_type->getBundleEntityType();
+    $build = [
+      '#theme' => 'entity_add_list',
+      '#bundles' => [],
+    ];
+    if ($bundle_entity_type_id) {
+      $bundle_argument = $bundle_entity_type_id;
+      $bundle_entity_type = $this->entityTypeManager->getDefinition($bundle_entity_type_id);
+      $bundle_entity_type_label = $bundle_entity_type->getSingularLabel();
+      $build['#cache']['tags'] = $bundle_entity_type->getListCacheTags();
+
+      // Build the message shown when there are no bundles.
+      $link_text = $this->t('Add a new @entity_type.', ['@entity_type' => $bundle_entity_type_label]);
+      $link_route_name = 'entity.' . $bundle_entity_type->id() . '.add_form';
+      $build['#add_bundle_message'] = $this->t('There is no @entity_type yet. @add_link', [
+        '@entity_type' => $bundle_entity_type_label,
+        '@add_link' => Link::createFromRoute($link_text, $link_route_name)->toString(),
+      ]);
+      // Filter out the bundles the user doesn't have access to.
+      $access_control_handler = $this->entityTypeManager->getAccessControlHandler($entity_type_id);
+      foreach ($bundles as $bundle_name => $bundle_info) {
+        $access = $access_control_handler->createAccess($bundle_name, NULL, [], TRUE);
+        if (!$access->isAllowed()) {
+          unset($bundles[$bundle_name]);
+        }
+        $this->renderer->addCacheableDependency($build, $access);
+      }
+      // Add descriptions from the bundle entities.
+      $bundles = $this->loadBundleDescriptions($bundles, $bundle_entity_type);
+    }
+    else {
+      $bundle_argument = $bundle_key;
+    }
+
+    $form_route_name = 'entity.' . $entity_type_id . '.add_form';
+    // Redirect if there's only one bundle available.
+    if (count($bundles) == 1) {
+      $bundle_names = array_keys($bundles);
+      $bundle_name = reset($bundle_names);
+      return $this->redirect($form_route_name, [
+        $bundle_argument => $bundle_name,
+        'event' => $event->id(),
+      ]);
+    }
+
+    // Prepare the #bundles array for the template.
+    foreach ($bundles as $bundle_name => $bundle_info) {
+      $build['#bundles'][$bundle_name] = [
+        'label' => $bundle_info['label'],
+        'description' => $bundle_info['description'] ?? '',
+        'add_link' => Link::createFromRoute($bundle_info['label'], $form_route_name, [
+          $bundle_argument => $bundle_name,
+          'event' => $event->id(),
+        ]),
+      ];
+    }
+
+    return $build;
   }
 
   /**

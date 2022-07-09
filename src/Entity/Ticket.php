@@ -27,7 +27,6 @@ use Drupal\user\UserInterface;
  *     "list_builder" = "Drupal\event_ticket\TicketListBuilder",
  *     "views_data" = "Drupal\event_ticket\Entity\TicketViewsData",
  *     "translation" = "Drupal\event_ticket\TicketTranslationHandler",
- *
  *     "form" = {
  *       "default" = "Drupal\event_ticket\Form\TicketForm",
  *       "add" = "Drupal\event_ticket\Form\TicketForm",
@@ -56,18 +55,23 @@ use Drupal\user\UserInterface;
  *     "langcode" = "langcode",
  *     "published" = "status",
  *   },
+ *   revision_metadata_keys = {
+ *     "revision_user" = "revision_user",
+ *     "revision_created" = "revision_created",
+ *     "revision_log_message" = "revision_log_message",
+ *   },
  *   links = {
- *     "canonical" = "/admin/commerce/event_ticket/event_ticket/{event_ticket}",
- *     "add-page" = "/admin/commerce/event_ticket/event_ticket/add",
- *     "add-form" = "/admin/commerce/event_ticket/event_ticket/add/{event_ticket_type}",
- *     "edit-form" = "/admin/commerce/event_ticket/event_ticket/{event_ticket}/edit",
- *     "delete-form" = "/admin/commerce/event_ticket/event_ticket/{event_ticket}/delete",
- *     "version-history" = "/admin/commerce/event_ticket/event_ticket/{event_ticket}/revisions",
- *     "revision" = "/admin/commerce/event_ticket/event_ticket/{event_ticket}/revisions/{event_ticket_revision}/view",
- *     "revision_revert" = "/admin/commerce/event_ticket/event_ticket/{event_ticket}/revisions/{event_ticket_revision}/revert",
- *     "revision_delete" = "/admin/commerce/event_ticket/event_ticket/{event_ticket}/revisions/{event_ticket_revision}/delete",
- *     "translation_revert" = "/admin/commerce/event_ticket/event_ticket/{event_ticket}/revisions/{event_ticket_revision}/revert/{langcode}",
- *     "collection" = "/admin/commerce/event_ticket/event_ticket",
+ *     "canonical" = "/event/{event}/tickets/{event_ticket}",
+ *     "add-page" = "/event/{event}/tickets/add",
+ *     "add-form" = "/event/{event}/tickets/add/{event_ticket_type}",
+ *     "edit-form" = "/event/{event}/tickets/{event_ticket}/edit",
+ *     "delete-form" = "/event/{event}/tickets/{event_ticket}/delete",
+ *     "version-history" = "/event/{event}/tickets/{event_ticket}/revisions",
+ *     "revision" = "/event/{event}/tickets/{event_ticket}/revisions/{event_ticket_revision}/view",
+ *     "revision_revert" = "/event/{event}/tickets/{event_ticket}/revisions/{event_ticket_revision}/revert",
+ *     "revision_delete" = "/event/{event}/tickets/{event_ticket}/revisions/{event_ticket_revision}/delete",
+ *     "translation_revert" = "/event/{event}/tickets/{event_ticket}/revisions/{event_ticket_revision}/revert/{langcode}",
+ *     "collection" = "/admin/commerce/event-ticket",
  *   },
  *   bundle_entity_type = "event_ticket_type",
  *   field_ui_base_route = "entity.event_ticket_type.edit_form"
@@ -94,6 +98,9 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
    */
   protected function urlRouteParameters($rel) {
     $uri_route_parameters = parent::urlRouteParameters($rel);
+    
+    $event = $this->getEvent();
+    $uri_route_parameters['event'] = $event ? $event->id() : NULL;
 
     if ($rel === 'revision_revert' && $this instanceof RevisionableInterface) {
       $uri_route_parameters[$this->getEntityTypeId() . '_revision'] = $this->getRevisionId();
@@ -197,9 +204,40 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
   /**
    * {@inheritdoc}
    */
+  public function setStores(array $stores) {
+    $this->set('stores', $stores);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getStoreIds() {
+    $store_ids = [];
+    foreach ($this->get('stores') as $store_item) {
+      $store_ids[] = $store_item->target_id;
+    }
+    return $store_ids;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setStoreIds(array $store_ids) {
+    $this->set('stores', $store_ids);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getEvent() {
-    $events = $this->getTranslatedReferencedEntities('event');
-    return reset($event);
+    return $this->getTranslatedReferencedEntity('event');
+  }
+  
+  public function getTicketType() {
+    $type_storage = $this->entityTypeManager()->getStorage('event_ticket_type');
+    return $type_storage->load($this->bundle());
   }
 
   /**
@@ -207,9 +245,7 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
    */
   public function getOrderItemTypeId() {
     // The order item type is a bundle-level setting.
-    $type_storage = $this->entityTypeManager()->getStorage('event_registration_ticket_bundle');
-    $bundle = $type_storage->load($this->bundle());
-
+    $bundle = $this->getTicketType();
     return $bundle->getOrderItemTypeId();
   }
 
@@ -243,6 +279,14 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
 
+    // Add the revision metadata fields.
+    $fields += static::revisionLogBaseFieldDefinitions($entity_type);
+    $fields['revision_log_message']
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayOptions('form', [
+        'region' => 'hidden',
+      ]);
+
     // Add the published field.
     $fields += static::publishedBaseFieldDefinitions($entity_type);
 
@@ -253,21 +297,6 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
       ->setSetting('target_type', 'user')
       ->setSetting('handler', 'default')
       ->setTranslatable(TRUE)
-      ->setDisplayOptions('view', [
-        'label' => 'hidden',
-        'type' => 'author',
-        'weight' => 0,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'entity_reference_autocomplete',
-        'weight' => 5,
-        'settings' => [
-          'match_operator' => 'CONTAINS',
-          'size' => '60',
-          'autocomplete_type' => 'tags',
-          'placeholder' => '',
-        ],
-      ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
@@ -293,7 +322,8 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
       ->setDisplayConfigurable('view', TRUE)
       ->setRequired(TRUE);
 
-    $fields['status']->setDescription(t('A boolean indicating whether the Ticket is published.'))
+    $fields['status']->setLabel(t('Available'))
+      ->setDescription(t('A boolean indicating whether the Ticket is available'))
       ->setDisplayOptions('form', [
         'type' => 'boolean_checkbox',
         'weight' => -3,
@@ -330,8 +360,21 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
+    $fields['stores'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Stores'))
+      ->setDescription(t('The product stores.'))
+      ->setRequired(TRUE)
+      ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
+      ->setSetting('target_type', 'commerce_store')
+      ->setSetting('handler', 'default')
+      ->setDisplayOptions('form', [
+        'type' => 'commerce_entity_select',
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
     $fields['event'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Order Item'))
+      ->setLabel(t('Event'))
       ->setDescription(t('Event for the registration.'))
       ->setRevisionable(TRUE)
       ->setSetting('target_type', 'event')
@@ -339,15 +382,6 @@ class Ticket extends CommerceContentEntityBase implements TicketInterface {
       ->setDisplayOptions('view', [
         'label' => 'hidden',
         'weight' => 0,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'entity_reference_autocomplete',
-        'weight' => 5,
-        'settings' => [
-          'match_operator' => 'CONTAINS',
-          'size' => '60',
-          'placeholder' => '',
-        ],
       ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);

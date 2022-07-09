@@ -9,7 +9,7 @@ entity.event_ticket.collection:
 # Ticket type menu items definition
 entity.event_ticket_type.collection:
   title: 'Ticket types'
-  route_name: commerce.admin_commerce
+  route_name: entity.event_ticket_type.collection
   description: 'List Ticket type (bundles)'
   parent: commerce.configuration
   weight: 99

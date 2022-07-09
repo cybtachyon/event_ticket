@@ -35,7 +35,7 @@ use Drupal\commerce\Entity\CommerceBundleEntityBase;
  *     "label",
  *     "description",
  *     "orderItemType",
- *     "registrationBundles",
+ *     "registrationType",
  *     "eventTypes",
  *     "traits",
  *     "locked",
@@ -89,14 +89,14 @@ class TicketType extends CommerceBundleEntityBase implements TicketTypeInterface
   /**
    * {@inheritdoc}
    */
-  public function getDescription(): string {
+  public function getDescription() {
     return $this->description;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setDescription($description): string {
+  public function setDescription($description) {
     $this->description = $description;
     return $this;
   }
@@ -119,14 +119,14 @@ class TicketType extends CommerceBundleEntityBase implements TicketTypeInterface
   /**
    * {@inheritdoc}
    */
-  public function getRegistrationType() : string {
+  public function getRegistrationTypeId(): ?string {
     return $this->registrationType;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setRegistrationType($registration_type_id) {
+  public function setRegistrationTypeId($registration_type_id) {
     $this->registrationType = $registration_type_id;
     return $this;
   }

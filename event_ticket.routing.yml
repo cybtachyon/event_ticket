@@ -1,0 +1,23 @@
+event_ticket.event.tickets:
+  path: '/event/{event}/tickets'
+  defaults:
+    _controller: '\Drupal\event_ticket\Controller\EventTicketController::overview'
+    _title_callback: '\Drupal\event_ticket\Controller\EventTicketController::overviewTitle'
+  options:
+    parameters:
+      event:
+        type: 'entity:event'
+  requirements:
+    _permission: 'access event_ticket overview for any event'
+
+event_ticket.event.ticket_list:
+  path: '/event/{event}/tickets/list'
+  defaults:
+    _entity_list: 'event_ticket'
+    _title_callback: '\Drupal\event_ticket\Controller\EventTicketController::listTitle'
+  options:
+    parameters:
+      event:
+        type: 'entity:event'
+  requirements:
+    _permission: 'access event_ticket list for any event'

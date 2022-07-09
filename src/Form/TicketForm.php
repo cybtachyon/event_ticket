@@ -4,6 +4,7 @@ namespace Drupal\event_ticket\Form;
 
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -28,6 +29,28 @@ class TicketForm extends ContentEntityForm {
     $instance = parent::create($container);
     $instance->account = $container->get('current_user');
     return $instance;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getEntityFromRouteMatch(RouteMatchInterface $route_match, $entity_type_id) {
+    if ($route_match->getRawParameter('event_ticket') !== NULL) {
+      $entity = $route_match->getParameter('event_ticket');
+    }
+    else {
+      /** @var \Drupal\event\Entity\EventInterface $event */
+      $event = $route_match->getParameter('event');
+      /** @var \Drupal\event_ticket\Entity\TicketTypeInterface $event_ticket_type */
+      $event_ticket_type = $route_match->getParameter('event_ticket_type');
+      $values = [
+        'type' => $event_ticket_type->id(),
+        'event' => $event->id(),
+      ];
+      $entity = $this->entityTypeManager->getStorage('event_ticket')->create($values);
+    }
+
+    return $entity;
   }
 
   /**
@@ -81,7 +104,12 @@ class TicketForm extends ContentEntityForm {
           '%label' => $entity->label(),
         ]));
     }
-    $form_state->setRedirect('entity.event_ticket.canonical', ['event_ticket' => $entity->id()]);
+    $event = $entity->getEvent();
+    var_export($event);
+    $form_state->setRedirect('entity.event_ticket.canonical', [
+      'event' => $event ? $event->id() : NULL,
+      'event_ticket' => $entity->id(),
+    ]);
   }
 
 }
