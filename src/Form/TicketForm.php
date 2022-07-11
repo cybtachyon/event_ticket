@@ -105,7 +105,6 @@ class TicketForm extends ContentEntityForm {
         ]));
     }
     $event = $entity->getEvent();
-    var_export($event);
     $form_state->setRedirect('entity.event_ticket.canonical', [
       'event' => $event ? $event->id() : NULL,
       'event_ticket' => $entity->id(),
