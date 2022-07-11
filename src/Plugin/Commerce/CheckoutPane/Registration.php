@@ -119,7 +119,7 @@ class Registration extends CheckoutPaneBase {
     foreach ($this->order->getItems() as $item) {
       $registrations_query = $storage->getQuery();
       $registrations_query->condition('order_item', $item->id());
-      $registration_ids = $registration_query->execute();
+      $registration_ids = $registrations_query->execute();
       $registrations = $storage->loadMultiple($registration_ids);
       foreach ($registrations as $registration) {
         $summary[$registration->id()] = [
@@ -193,7 +193,7 @@ class Registration extends CheckoutPaneBase {
           ]);
           $inline_form = $this->inlineFormManager->createInstance('content_entity', [
             'form_mode' => 'register',
-          ], $registration);
+          ], $new_registration);
           $index = count($pane_form['tickets'][$item->id()]['registrations']);
           $pane_form['tickets'][$item->id()]['registrations'][$index] = [
             '#type' => 'details',
