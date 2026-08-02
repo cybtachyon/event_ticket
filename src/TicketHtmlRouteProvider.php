@@ -6,6 +6,10 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Routing\AdminHtmlRouteProvider;
 use Drupal\event_ticket\Controller\TicketController;
 use Symfony\Component\Routing\Route;
+use Drupal\event_ticket\Form\TicketRevisionRevertForm;
+use Drupal\event_ticket\Form\TicketRevisionDeleteForm;
+use Drupal\event_ticket\Form\TicketRevisionRevertTranslationForm;
+use Drupal\event_ticket\Form\TicketSettingsForm;
 
 /**
  * Provides routes for Ticket entities.
@@ -30,6 +34,8 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
         ]);
       return $route;
     }
+
+    return NULL;
   }
 
   /**
@@ -45,12 +51,15 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
         ->setOption('parameters', $parameters);
       return $route;
     }
+
+    return NULL;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getRoutes(EntityTypeInterface $entity_type) {
+  public function getRoutes(EntityTypeInterface $entity_type): \Symfony\Component\Routing\RouteCollection|array
+  {
     $collection = parent::getRoutes($entity_type);
 
     $entity_type_id = $entity_type->id();
@@ -104,6 +113,8 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
 
       return $route;
     }
+
+    return NULL;
   }
 
   /**
@@ -115,7 +126,8 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
    * @return \Symfony\Component\Routing\Route|null
    *   The generated route, if available.
    */
-  protected function getRevisionRoute(EntityTypeInterface $entity_type) {
+  protected function getRevisionRoute(EntityTypeInterface $entity_type): ?Route
+  {
     if ($entity_type->hasLinkTemplate('revision')) {
       $route = new Route($entity_type->getLinkTemplate('revision'));
       $route
@@ -128,6 +140,8 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
 
       return $route;
     }
+
+    return NULL;
   }
 
   /**
@@ -139,12 +153,13 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
    * @return \Symfony\Component\Routing\Route|null
    *   The generated route, if available.
    */
-  protected function getRevisionRevertRoute(EntityTypeInterface $entity_type) {
+  protected function getRevisionRevertRoute(EntityTypeInterface $entity_type): ?Route
+  {
     if ($entity_type->hasLinkTemplate('revision_revert')) {
       $route = new Route($entity_type->getLinkTemplate('revision_revert'));
       $route
         ->setDefaults([
-          '_form' => '\Drupal\event_ticket\Form\TicketRevisionRevertForm',
+          '_form' => TicketRevisionRevertForm::class,
           '_title' => 'Revert to earlier revision',
         ])
         ->setRequirement('_permission', 'revert all ticket revisions')
@@ -152,6 +167,8 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
 
       return $route;
     }
+
+    return NULL;
   }
 
   /**
@@ -163,12 +180,13 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
    * @return \Symfony\Component\Routing\Route|null
    *   The generated route, if available.
    */
-  protected function getRevisionDeleteRoute(EntityTypeInterface $entity_type) {
+  protected function getRevisionDeleteRoute(EntityTypeInterface $entity_type): ?Route
+  {
     if ($entity_type->hasLinkTemplate('revision_delete')) {
       $route = new Route($entity_type->getLinkTemplate('revision_delete'));
       $route
         ->setDefaults([
-          '_form' => '\Drupal\event_ticket\Form\TicketRevisionDeleteForm',
+          '_form' => TicketRevisionDeleteForm::class,
           '_title' => 'Delete earlier revision',
         ])
         ->setRequirement('_permission', 'delete all ticket revisions')
@@ -176,6 +194,8 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
 
       return $route;
     }
+
+    return NULL;
   }
 
   /**
@@ -187,12 +207,13 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
    * @return \Symfony\Component\Routing\Route|null
    *   The generated route, if available.
    */
-  protected function getRevisionTranslationRevertRoute(EntityTypeInterface $entity_type) {
+  protected function getRevisionTranslationRevertRoute(EntityTypeInterface $entity_type): ?Route
+  {
     if ($entity_type->hasLinkTemplate('translation_revert')) {
       $route = new Route($entity_type->getLinkTemplate('translation_revert'));
       $route
         ->setDefaults([
-          '_form' => '\Drupal\event_ticket\Form\TicketRevisionRevertTranslationForm',
+          '_form' => TicketRevisionRevertTranslationForm::class,
           '_title' => 'Revert to earlier revision of a translation',
         ])
         ->setRequirement('_permission', 'revert all ticket revisions')
@@ -211,19 +232,20 @@ class TicketHtmlRouteProvider extends AdminHtmlRouteProvider {
    * @return \Symfony\Component\Routing\Route|null
    *   The generated route, if available.
    */
-  protected function getSettingsFormRoute(EntityTypeInterface $entity_type) {
+  protected function getSettingsFormRoute(EntityTypeInterface $entity_type): ?Route
+  {
     if (!$entity_type->getBundleEntityType()) {
       $route = new Route("/admin/structure/{$entity_type->id()}/settings");
       $route
         ->setDefaults([
-          '_form' => 'Drupal\event_ticket\Form\TicketSettingsForm',
+          '_form' => TicketSettingsForm::class,
           '_title' => "{$entity_type->getLabel()} settings",
         ])
         ->setRequirement('_permission', $entity_type->getAdminPermission())
         ->setOption('_admin_route', TRUE);
-
       return $route;
     }
+    return NULL;
   }
 
 }

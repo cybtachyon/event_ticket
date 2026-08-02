@@ -7,6 +7,7 @@
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
@@ -16,8 +17,7 @@ function event_ticket_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
     // Main module help for the event_ticket module.
     case 'help.page.event_ticket':
-      $output = '';
-      $output .= '<h3>' . t('About') . '</h3>';
+      $output = '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('Event Ticketing with Drupal Commerce') . '</p>';
       return $output;
 
@@ -71,8 +71,8 @@ function event_ticket_theme_suggestions_event_ticket(array $variables) {
  * Implements hook_entity_base_field_info().
  */
 function event_ticket_entity_base_field_info(EntityTypeInterface $entity_type) {
-  if ($entity_type->id() == 'event_registration') {
-    $fields = [];
+  $fields = [];
+  if ($entity_type->id() === 'event_registration') {
     $fields['event_ticket'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Ticket'))
       ->setDescription(t('The ticket the registration was bought with.'))
@@ -96,15 +96,14 @@ function event_ticket_entity_base_field_info(EntityTypeInterface $entity_type) {
         ->setDisplayConfigurable('form', FALSE)
         ->setDisplayConfigurable('view', TRUE);
     }
-
-    return $fields;
   }
-  elseif ($entity_type->id() == 'event') {
+
+  if ($entity_type->id() === 'event') {
     $fields['event_tickets'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Tickets'))
       ->setDescription(t('The event tickets.'))
       ->setRequired(TRUE)
-      ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
       ->setSetting('target_type', 'event_ticket')
       ->setSetting('handler', 'default')
       ->setDisplayOptions('view', [
@@ -113,6 +112,6 @@ function event_ticket_entity_base_field_info(EntityTypeInterface $entity_type) {
         'weight' => 10,
       ])
       ->setDisplayConfigurable('view', TRUE);
-    return $fields;
   }
+  return $fields;
 }

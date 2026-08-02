@@ -3,27 +3,30 @@
 namespace Drupal\event_ticket\Controller;
 
 use Drupal\Component\Utility\Xss;
-use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\Entity\Controller\EntityController;
 use Drupal\Core\Url;
 use Drupal\Core\Link;
 use Drupal\event\Entity\EventInterface;
 use Drupal\event_ticket\Entity\TicketInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class TicketController.
  *
  *  Returns responses for Ticket routes.
  */
-class TicketController extends EntityController implements ContainerInjectionInterface {
+class TicketController extends EntityController
+{
 
   /**
    * The date formatter.
    *
    * @var \Drupal\Core\Datetime\DateFormatter
    */
-  protected $dateFormatter;
+  protected DateFormatter $dateFormatter;
 
   /**
    * {@inheritdoc}
@@ -37,8 +40,8 @@ class TicketController extends EntityController implements ContainerInjectionInt
   /**
    * {@inheritdoc}
    */
-  public function addPage($entity_type_id, EventInterface $event = NULL) {
-
+  public function addPage($entity_type_id, Request|null $request = NULL): RedirectResponse|array
+  {
     $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
     $bundles = $this->entityTypeBundleInfo->getBundleInfo($entity_type_id);
     $bundle_key = $entity_type->getKey('bundle');
@@ -75,15 +78,21 @@ class TicketController extends EntityController implements ContainerInjectionInt
     else {
       $bundle_argument = $bundle_key;
     }
+    /** @var EventInterface $event */
+    $event = $request->query->get('event');
+    $event_id = 0;
+    if ($event) {
+      $event_id = $event->id();
+    }
 
     $form_route_name = 'entity.' . $entity_type_id . '.add_form';
     // Redirect if there's only one bundle available.
-    if (count($bundles) == 1) {
+    if (count($bundles) === 1) {
       $bundle_names = array_keys($bundles);
       $bundle_name = reset($bundle_names);
       return $this->redirect($form_route_name, [
         $bundle_argument => $bundle_name,
-        'event' => $event->id(),
+        'event' => $event_id,
       ]);
     }
 
@@ -94,7 +103,7 @@ class TicketController extends EntityController implements ContainerInjectionInt
         'description' => $bundle_info['description'] ?? '',
         'add_link' => Link::createFromRoute($bundle_info['label'], $form_route_name, [
           $bundle_argument => $bundle_name,
-          'event' => $event->id(),
+          'event' => $event_id,
         ]),
       ];
     }
@@ -111,12 +120,11 @@ class TicketController extends EntityController implements ContainerInjectionInt
    * @return array
    *   An array suitable for drupal_render().
    */
-  public function revisionShow($event_ticket_revision) {
-    $event_ticket = $this->entityTypeManager()->getStorage('event_ticket')
+  public function revisionShow(int $event_ticket_revision): array
+  {
+    $event_ticket = $this->entityTypeManager->getStorage('event_ticket')
       ->loadRevision($event_ticket_revision);
-    $view_builder = $this->entityTypeManager()->getViewBuilder('event_ticket');
-
-    return $view_builder->view($event_ticket);
+    return $this->entityTypeManager->getViewBuilder('event_ticket')->view($event_ticket);
   }
 
   /**
@@ -125,11 +133,15 @@ class TicketController extends EntityController implements ContainerInjectionInt
    * @param int $event_ticket_revision
    *   The Ticket revision ID.
    *
-   * @return string
+   * @return \Drupal\Core\StringTranslation\TranslatableMarkup
    *   The page title.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  public function revisionPageTitle($event_ticket_revision) {
-    $event_ticket = $this->entityTypeManager()->getStorage('event_ticket')
+  public function revisionPageTitle(int $event_ticket_revision): \Drupal\Core\StringTranslation\TranslatableMarkup
+  {
+    $event_ticket = $this->entityTypeManager->getStorage('event_ticket')
       ->loadRevision($event_ticket_revision);
     return $this->t('Revision of %title from %date', [
       '%title' => $event_ticket->label(),
@@ -145,10 +157,16 @@ class TicketController extends EntityController implements ContainerInjectionInt
    *
    * @return array
    *   An array as expected by drupal_render().
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityMalformedException
    */
-  public function revisionOverview(TicketInterface $event_ticket) {
-    $account = $this->currentUser();
-    $event_ticket_storage = $this->entityTypeManager()->getStorage('event_ticket');
+  public function revisionOverview(TicketInterface $event_ticket): array
+  {
+    $account = \Drupal::currentUser();
+    /** @var \Drupal\event_ticket\TicketStorageInterface $event_ticket_storage */
+    $event_ticket_storage = $this->entityTypeManager->getStorage('event_ticket');
 
     $langcode = $event_ticket->language()->getId();
     $langname = $event_ticket->language()->getName();
@@ -172,7 +190,7 @@ class TicketController extends EntityController implements ContainerInjectionInt
     $latest_revision = TRUE;
 
     foreach (array_reverse($vids) as $vid) {
-      /** @var \Drupal\event_ticket\TicketInterface $revision */
+      /** @var \Drupal\event_ticket\Entity\TicketInterface $revision */
       $revision = $event_ticket_storage->loadRevision($vid);
       // Only show revisions that are affected by the language that is being
       // displayed.
@@ -182,16 +200,16 @@ class TicketController extends EntityController implements ContainerInjectionInt
           '#account' => $revision->getRevisionUser(),
         ];
 
-        // Use revision link to link to revisions that are not active.
+        // Use revision link to revisions that are not active.
         $date = $this->dateFormatter->format($revision->getRevisionCreationTime(), 'short');
-        if ($vid != $event_ticket->getRevisionId()) {
-          $link = $this->l($date, new Url('entity.event_ticket.revision', [
+        if ($vid !== $event_ticket->getRevisionId()) {
+          $link = \Drupal::linkGenerator()->generate($date, new Url('entity.event_ticket.revision', [
             'event_ticket' => $event_ticket->id(),
             'event_ticket_revision' => $vid,
           ]));
         }
         else {
-          $link = $event_ticket->link($date);
+          $link = $event_ticket->toLink($date);
         }
 
         $row = [];
@@ -201,7 +219,7 @@ class TicketController extends EntityController implements ContainerInjectionInt
             '#template' => '{% trans %}{{ date }} by {{ username }}{% endtrans %}{% if message %}<p class="revision-log">{{ message }}</p>{% endif %}',
             '#context' => [
               'date' => $link,
-              'username' => $this->renderer->renderPlain($username),
+              'username' => $this->renderer->renderInIsolation($username),
               'message' => [
                 '#markup' => $revision->getRevisionLogMessage(),
                 '#allowed_tags' => Xss::getHtmlTagList(),
@@ -222,6 +240,7 @@ class TicketController extends EntityController implements ContainerInjectionInt
           foreach ($row as &$current) {
             $current['class'] = ['revision-current'];
           }
+          unset($current);
           $latest_revision = FALSE;
         }
         else {

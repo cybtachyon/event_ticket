@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\event\Entity\EventInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -20,9 +21,9 @@ class TicketListBuilder extends EntityListBuilder {
   /**
    * The parent Event.
    *
-   * @var \Drupal\event\Entity\EventInterface
+   * @var \Drupal\event\Entity\EventInterface|null
    */
-  protected $event;
+  protected ?EventInterface $event;
 
   /**
    * Constructs a new ProductVariationListBuilder object.
@@ -43,7 +44,8 @@ class TicketListBuilder extends EntityListBuilder {
   /**
    * {@inheritdoc}
    */
-  public static function createInstance(ContainerInterface $container, EntityTypeInterface $entity_type) {
+  public static function createInstance(ContainerInterface $container, EntityTypeInterface $entity_type): self|EntityListBuilder|\Drupal\Core\Entity\EntityHandlerInterface|static
+  {
     return new static(
       $entity_type,
       $container->get('entity_type.manager')->getStorage($entity_type->id()),
@@ -64,21 +66,23 @@ class TicketListBuilder extends EntityListBuilder {
   /**
    * {@inheritdoc}
    */
-  public function buildRow(EntityInterface $entity) {
+  public function buildRow(EntityInterface $entity): array
+  {
     /** @var \Drupal\event_ticket\Entity\Ticket $entity */
     $row['id'] = $entity->id();
     $row['name'] = Link::fromTextAndUrl(
       $entity->label(),
       $entity->toUrl('canonical')
     );
-    $row['type'] = $type ? $type->label() : $entity->bundle();
+    $row['type'] = $entity->bundle();
     return $row + parent::buildRow($entity);
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function getEntityIds() {
+  protected function getEntityIds(): array|int
+  {
     $query = $this
       ->getStorage()
       ->getQuery()

@@ -81,13 +81,13 @@ class TicketAccessControlHandler extends EntityAccessControlHandler {
    * @return string|null
    *   The permission string indicating it's allowed.
    */
-  protected function checkOwn(EntityInterface $entity, $operation, AccountInterface $account) {
+  protected function checkOwn(EntityInterface $entity, string $operation, AccountInterface $account) {
     $status = $entity->isPublished();
     $uid = $entity->getOwnerId();
 
-    $is_own = $account->isAuthenticated() && $account->id() == $uid;
+    $is_own = $account->isAuthenticated() && $account->id() === $uid;
     if (!$is_own) {
-      return;
+      return NULL;
     }
 
     $bundle = $entity->bundle();
@@ -105,10 +105,9 @@ class TicketAccessControlHandler extends EntityAccessControlHandler {
       if (!$status && $account->hasPermission($permission)) {
         return $permission;
       }
-      else {
-        return NULL;
-      }
+      return NULL;
     }
+
     if ($account->hasPermission($permission)) {
       return $permission;
     }
