@@ -4,6 +4,7 @@ description: 'Event Ticketing with Drupal Commerce'
 core_version_requirement: ^10.3 || ^11 || ^12
 package: 'Event'
 dependencies:
+  - commerce:commerce_cart
   - commerce:commerce_price
   - commerce:commerce_store
   - event_registration:event_registration
