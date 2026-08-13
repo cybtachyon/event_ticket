@@ -1,0 +1,20 @@
+{
+  "name": "drupal/event_ticket",
+  "type": "drupal-module",
+  "description": "Drupal module integrating the Event, Event Registration, and Commerce modules, to provide a simple experience for purchasing event tickets.",
+  "keywords": ["Drupal, COD", "Events", "Group"],
+  "license": "GPL-2.0-or-later",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "repositories": {
+    "drupal": {
+      "type": "composer",
+      "url": "https://packages.drupal.org/8"
+    }
+  },
+  "require": {
+    "drupal/commerce": "^3.3",
+    "drupal/event": "^2.0@dev",
+    "drupal/event_registration": "^2.0@dev"
+  }
+}
