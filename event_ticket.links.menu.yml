@@ -3,13 +3,19 @@
 entity.event_ticket.collection:
   title: 'Tickets'
   route_name: entity.event_ticket.collection
-  description: 'List Ticket entities'
+  description: 'Manage your tickets'
   parent: commerce.admin_commerce
+
+event_ticket.configuration:
+  title: 'Event Tickets'
+  route_name: event_ticket.configuration
+  parent: commerce.configuration
+  weight: 0
 
 # Ticket type menu items definition
 entity.event_ticket_type.collection:
   title: 'Ticket types'
   route_name: entity.event_ticket_type.collection
-  description: 'List Ticket type (bundles)'
-  parent: commerce.configuration
-  weight: 99
+  description: 'Manage fields and display settings for your ticket types.'
+  parent: event_ticket.configuration
+  weight: 0

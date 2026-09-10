@@ -1,0 +1,18 @@
+event_ticket.event_ticket_type.*:
+  type: commerce_config_entity_bundle
+  label: 'Ticket type'
+  mapping:
+    description:
+      type: text
+      label: 'Description'
+    orderItemType:
+      type: string
+      label: 'Order item type'
+    registrationType:
+      type: string
+      label: 'Registration type'
+    eventTypes:
+      type: sequence
+      label: 'Event types'
+      sequence:
+        type: string

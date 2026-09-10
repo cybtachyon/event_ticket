@@ -1,3 +1,11 @@
+event_ticket.configuration:
+  path: '/admin/commerce/config/event_ticket'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Event Tickets'
+  requirements:
+    _permission: 'access commerce administration pages'
+
 event_ticket.event.tickets:
   path: '/event/{event}/tickets'
   defaults:

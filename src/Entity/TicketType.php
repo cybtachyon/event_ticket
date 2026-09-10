@@ -18,6 +18,9 @@ use Drupal\commerce\Entity\CommerceBundleEntityBase;
  *       "edit" = "Drupal\event_ticket\Form\TicketTypeForm",
  *       "delete" = "Drupal\event_ticket\Form\TicketTypeDeleteForm"
  *     },
+ *     "local_task_provider" = {
+ *       "default" = "Drupal\entity\Menu\DefaultEntityLocalTaskProvider",
+ *     },
  *     "route_provider" = {
  *       "html" = "Drupal\event_ticket\TicketTypeHtmlRouteProvider",
  *     },
